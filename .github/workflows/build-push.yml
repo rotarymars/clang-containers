@@ -1,0 +1,90 @@
+name: Build and Push Clang Container Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'dockerfiles/**'
+      - '.github/workflows/build-push.yml'
+      - 'versions.txt'
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+
+          {
+                    "group": 1,
+                    "versions": "10.0.1 11.1.0 12.0.1"
+          },
+          {
+                    "group": 2,
+                    "versions": "13.0.1 14.0.6 15.0.7"
+          },
+          {
+                    "group": 3,
+                    "versions": "16.0.6 17.0.6 18.1.8"
+          }
+
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push versions in group ${{ matrix.group }}
+        run: |
+          for version in ${{ matrix.versions }}; do
+            echo "Building and pushing clang-$version..."
+            docker buildx build \
+              --file "dockerfiles/Dockerfile.clang-$version" \
+              --tag "ghcr.io/${{ github.repository_owner }}/clang:$version" \
+              --cache-from type=gha,scope=clang-$version \
+              --cache-to type=gha,mode=max,scope=clang-$version \
+              --push \
+              .
+            echo "Successfully built and pushed clang-$version"
+          done
+  
+  tag-latest:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Tag latest version
+        run: |
+          LATEST_VERSION=$(grep -v '^[[:space:]]*$' versions.txt | tail -n1)
+          docker pull ghcr.io/${{ github.repository_owner }}/clang:$LATEST_VERSION
+          docker tag ghcr.io/${{ github.repository_owner }}/clang:$LATEST_VERSION ghcr.io/${{ github.repository_owner }}/clang:latest
+          docker push ghcr.io/${{ github.repository_owner }}/clang:latest
+
