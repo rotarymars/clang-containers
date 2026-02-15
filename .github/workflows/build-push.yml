@@ -7,6 +7,7 @@ on:
     paths:
       - 'dockerfiles/**'
       - '.github/workflows/build-push.yml'
+      - 'versions.txt'
   workflow_dispatch:
 
 jobs:
@@ -16,17 +17,23 @@ jobs:
       contents: read
       packages: write
     strategy:
+      fail-fast: false
       matrix:
-        version: 
-          - '10.0.1'
-          - '11.1.0'
-          - '12.0.1'
-          - '13.0.1'
-          - '14.0.6'
-          - '15.0.7'
-          - '16.0.6'
-          - '17.0.6'
-          - '18.1.8'
+        include:
+
+          {
+                    "group": 1,
+                    "versions": "10.0.1 11.1.0 12.0.1"
+          },
+          {
+                    "group": 2,
+                    "versions": "13.0.1 14.0.6 15.0.7"
+          },
+          {
+                    "group": 3,
+                    "versions": "16.0.6 17.0.6 18.1.8"
+          }
+
     
     steps:
       - name: Checkout repository
@@ -42,15 +49,19 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Build and push clang-${{ matrix.version }}
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: dockerfiles/Dockerfile.clang-${{ matrix.version }}
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/clang:${{ matrix.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build and push versions in group ${{ matrix.group }}
+        run: |
+          for version in ${{ matrix.versions }}; do
+            echo "Building and pushing clang-$version..."
+            docker buildx build \
+              --file "dockerfiles/Dockerfile.clang-$version" \
+              --tag "ghcr.io/${{ github.repository_owner }}/clang:$version" \
+              --cache-from type=gha,scope=clang-$version \
+              --cache-to type=gha,mode=max,scope=clang-$version \
+              --push \
+              .
+            echo "Successfully built and pushed clang-$version"
+          done
   
   tag-latest:
     needs: build-and-push
@@ -60,6 +71,9 @@ jobs:
       packages: write
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -67,8 +81,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Pull and tag latest version
+      - name: Tag latest version
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/clang:18.1.8
-          docker tag ghcr.io/${{ github.repository_owner }}/clang:18.1.8 ghcr.io/${{ github.repository_owner }}/clang:latest
+          LATEST_VERSION=$(tail -n1 versions.txt)
+          docker pull ghcr.io/${{ github.repository_owner }}/clang:$LATEST_VERSION
+          docker tag ghcr.io/${{ github.repository_owner }}/clang:$LATEST_VERSION ghcr.io/${{ github.repository_owner }}/clang:latest
           docker push ghcr.io/${{ github.repository_owner }}/clang:latest
+

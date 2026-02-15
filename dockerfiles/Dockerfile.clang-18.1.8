@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -15,16 +15,31 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /opt
 RUN git clone --branch llvmorg-18.1.8 --depth 1 https://github.com/llvm/llvm-project.git
 
-# Build clang
+# Build and install clang
 WORKDIR /opt/llvm-project
 RUN mkdir build && cd build && \
     cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DLLVM_ENABLE_PROJECTS=clang \
     -DLLVM_TARGETS_TO_BUILD=X86 \
     ../llvm && \
-    cmake --build . --target clang && \
-    cmake --install . --prefix /usr/local
+    cmake --build . --target install
+
+# Runtime image
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    cmake \
+    ninja-build \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy clang installation from builder
+COPY --from=builder /usr/local /usr/local
 
 # Set up default build directory
 WORKDIR /workspace
