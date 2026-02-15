@@ -61,7 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-{json.dumps(matrix_includes, indent=10)[1:-1]}
+{('\n' + '\n'.join([f'          - group: {mi["group"]}\n            versions: "{mi["versions"]}"' for mi in matrix_includes]))}
     
     steps:
       - name: Checkout repository
