@@ -2,9 +2,9 @@ FROM ubuntu:22.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
+# Install dependencies including pre-built clang for bootstrapping
 RUN apt-get update && apt-get install -y \
-    build-essential \
+    clang \
     cmake \
     ninja-build \
     git \
@@ -15,12 +15,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /opt
 RUN git clone --branch llvmorg-18.1.8 --depth 1 https://github.com/llvm/llvm-project.git
 
-# Build and install clang
+# Build and install clang using clang as the compiler
 WORKDIR /opt/llvm-project
 RUN mkdir build && cd build && \
     cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
     -DLLVM_ENABLE_PROJECTS=clang \
     -DLLVM_TARGETS_TO_BUILD=X86 \
     ../llvm && \
@@ -31,11 +33,12 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install runtime dependencies
+# Install runtime dependencies (libc and libstdc++ headers without gcc)
 RUN apt-get update && apt-get install -y \
     cmake \
     ninja-build \
-    build-essential \
+    libc6-dev \
+    libstdc++-12-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy clang installation from builder
