@@ -83,6 +83,21 @@ This repository includes a GitHub Actions workflow that automatically builds and
 
 The workflow uses `GITHUB_TOKEN` which is automatically provided by GitHub Actions with the necessary permissions to push to the container registry.
 
+### Parallelization
+
+The workflow parallelizes builds across multiple jobs (3 versions per job) to avoid hitting GitHub Actions' 6-hour timeout limit. The workflow is automatically generated from `versions.txt` using `generate-workflow.py`.
+
+## Adding New Versions
+
+To add a new Clang version:
+
+1. Add the version number to `versions.txt` (e.g., `19.0.0-rc1`)
+2. Create a corresponding Dockerfile: `dockerfiles/Dockerfile.clang-19.0.0-rc1`
+3. Regenerate the workflow: `python3 generate-workflow.py > .github/workflows/build-push.yml`
+4. Commit and push the changes
+
+The scripts and workflow will automatically pick up the new version.
+
 ## Structure
 
 ```
@@ -102,6 +117,8 @@ The workflow uses `GITHUB_TOKEN` which is automatically provided by GitHub Actio
 │       └── build-push.yml
 ├── build-images.sh
 ├── push-images.sh
+├── generate-workflow.py
+├── versions.txt
 └── README.md
 ```
 

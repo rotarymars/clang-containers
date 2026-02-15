@@ -7,11 +7,20 @@ to avoid hitting the 6-hour GitHub Actions timeout.
 
 import json
 import sys
+import os
 
 def read_versions(filename='versions.txt'):
     """Read versions from versions.txt file."""
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"Error: {filename} not found. Please create it with version numbers.")
+    
     with open(filename, 'r') as f:
-        return [line.strip() for line in f if line.strip()]
+        versions = [line.strip() for line in f if line.strip()]
+    
+    if not versions:
+        raise ValueError(f"Error: {filename} is empty. Please add at least one version.")
+    
+    return versions
 
 def chunk_versions(versions, chunk_size=3):
     """Split versions into chunks for parallel execution."""
@@ -102,7 +111,7 @@ jobs:
       
       - name: Tag latest version
         run: |
-          LATEST_VERSION=$(tail -n1 versions.txt)
+          LATEST_VERSION=$(grep -v '^[[:space:]]*$' versions.txt | tail -n1)
           docker pull ghcr.io/${{{{ github.repository_owner }}}}/clang:$LATEST_VERSION
           docker tag ghcr.io/${{{{ github.repository_owner }}}}/clang:$LATEST_VERSION ghcr.io/${{{{ github.repository_owner }}}}/clang:latest
           docker push ghcr.io/${{{{ github.repository_owner }}}}/clang:latest
@@ -111,4 +120,9 @@ jobs:
     return workflow
 
 if __name__ == '__main__':
-    print(generate_workflow())
+    try:
+        print(generate_workflow())
+    except (FileNotFoundError, ValueError) as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+

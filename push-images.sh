@@ -4,9 +4,9 @@ set -e
 # Repository name for Docker images (GitHub Container Registry)
 REPO_NAME="${DOCKER_REPO:-ghcr.io/rotarymars/clang}"
 
-# Read clang versions from versions.txt
+# Read clang versions from versions.txt (filter out empty lines)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-mapfile -t VERSIONS < "${SCRIPT_DIR}/versions.txt"
+mapfile -t VERSIONS < <(grep -v '^[[:space:]]*$' "${SCRIPT_DIR}/versions.txt")
 
 echo "Pushing Docker images for clang versions: ${VERSIONS[@]}"
 

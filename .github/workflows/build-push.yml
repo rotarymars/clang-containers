@@ -83,7 +83,7 @@ jobs:
       
       - name: Tag latest version
         run: |
-          LATEST_VERSION=$(tail -n1 versions.txt)
+          LATEST_VERSION=$(grep -v '^[[:space:]]*$' versions.txt | tail -n1)
           docker pull ghcr.io/${{ github.repository_owner }}/clang:$LATEST_VERSION
           docker tag ghcr.io/${{ github.repository_owner }}/clang:$LATEST_VERSION ghcr.io/${{ github.repository_owner }}/clang:latest
           docker push ghcr.io/${{ github.repository_owner }}/clang:latest
