@@ -14,8 +14,31 @@ This repository provides Docker images for the following Clang versions:
 - Clang 16.0.6 (`llvmorg-16.0.6`)
 - Clang 17.0.6 (`llvmorg-17.0.6`)
 - Clang 18.1.8 (`llvmorg-18.1.8`)
+- Clang 19.1.0 (`llvmorg-19.1.0`)
+- Clang 19.1.1 (`llvmorg-19.1.1`)
+- Clang 19.1.2 (`llvmorg-19.1.2`)
+- Clang 19.1.3 (`llvmorg-19.1.3`)
+- Clang 19.1.4 (`llvmorg-19.1.4`)
+- Clang 19.1.5 (`llvmorg-19.1.5`)
+- Clang 19.1.6 (`llvmorg-19.1.6`)
 - Clang 19.1.7 (`llvmorg-19.1.7`)
+- Clang 20.1.0 (`llvmorg-20.1.0`)
+- Clang 20.1.1 (`llvmorg-20.1.1`)
+- Clang 20.1.2 (`llvmorg-20.1.2`)
+- Clang 20.1.3 (`llvmorg-20.1.3`)
+- Clang 20.1.4 (`llvmorg-20.1.4`)
+- Clang 20.1.5 (`llvmorg-20.1.5`)
+- Clang 20.1.6 (`llvmorg-20.1.6`)
+- Clang 20.1.7 (`llvmorg-20.1.7`)
 - Clang 20.1.8 (`llvmorg-20.1.8`)
+- Clang 21.1.0 (`llvmorg-21.1.0`)
+- Clang 21.1.1 (`llvmorg-21.1.1`)
+- Clang 21.1.2 (`llvmorg-21.1.2`)
+- Clang 21.1.3 (`llvmorg-21.1.3`)
+- Clang 21.1.4 (`llvmorg-21.1.4`)
+- Clang 21.1.5 (`llvmorg-21.1.5`)
+- Clang 21.1.6 (`llvmorg-21.1.6`)
+- Clang 21.1.7 (`llvmorg-21.1.7`)
 - Clang 21.1.8 (`llvmorg-21.1.8`)
 
 ## Usage
@@ -89,7 +112,7 @@ The workflow uses `GITHUB_TOKEN` which is automatically provided by GitHub Actio
 
 ### Parallelization
 
-The workflow parallelizes builds across multiple jobs (3 versions per job) to avoid hitting GitHub Actions' 6-hour timeout limit. The workflow is automatically generated from `versions.txt` using `generate-workflow.py`.
+The workflow parallelizes builds across multiple jobs (3 versions per job) to avoid hitting GitHub Actions' 6-hour timeout limit. With 35 versions, the workflow creates 12 parallel groups. The workflow is automatically generated from `versions.txt` using `generate-workflow.py`.
 
 ## Adding New Versions
 
@@ -116,9 +139,9 @@ The scripts and workflow will automatically pick up the new version.
 │   ├── Dockerfile.clang-16.0.6
 │   ├── Dockerfile.clang-17.0.6
 │   ├── Dockerfile.clang-18.1.8
-│   ├── Dockerfile.clang-19.1.7
-│   ├── Dockerfile.clang-20.1.8
-│   └── Dockerfile.clang-21.1.8
+│   ├── Dockerfile.clang-19.1.0 through 19.1.7 (8 versions)
+│   ├── Dockerfile.clang-20.1.0 through 20.1.8 (9 versions)
+│   └── Dockerfile.clang-21.1.0 through 21.1.8 (9 versions)
 ├── .github/
 │   └── workflows/
 │       └── build-push.yml
