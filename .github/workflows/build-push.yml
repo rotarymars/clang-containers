@@ -12,6 +12,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         version: [10, 11, 12, 13, 14, 15, 16, 17, 18]
@@ -42,6 +44,8 @@ jobs:
   tag-latest:
     needs: build-and-push
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Login to Docker Hub
