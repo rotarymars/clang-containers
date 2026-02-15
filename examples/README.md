@@ -6,7 +6,7 @@ This directory contains a simple example to test the Clang container.
 
 ```bash
 # Run the container with this example mounted
-docker run -it --rm -v $(pwd):/workspace rotarymars/clang:18 /bin/bash
+docker run -it --rm -v $(pwd):/workspace ghcr.io/rotarymars/clang:18.1.8 /bin/bash
 
 # Inside the container
 cd /workspace/examples

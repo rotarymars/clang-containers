@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Repository name for Docker images
-REPO_NAME="${DOCKER_REPO:-rotarymars/clang}"
+# Repository name for Docker images (GitHub Container Registry)
+REPO_NAME="${DOCKER_REPO:-ghcr.io/rotarymars/clang}"
 
-# List of clang versions to build
-VERSIONS=(10 11 12 13 14 15 16 17 18)
+# List of clang versions to build (full version numbers)
+VERSIONS=(10.0.1 11.1.0 12.0.1 13.0.1 14.0.6 15.0.7 16.0.6 17.0.6 18.1.8)
 
 echo "Building Docker images for clang versions: ${VERSIONS[@]}"
 

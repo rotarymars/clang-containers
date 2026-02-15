@@ -1,17 +1,18 @@
 #!/bin/bash
 set -e
 
-# Repository name for Docker images
-REPO_NAME="${DOCKER_REPO:-rotarymars/clang}"
+# Repository name for Docker images (GitHub Container Registry)
+REPO_NAME="${DOCKER_REPO:-ghcr.io/rotarymars/clang}"
 
-# List of clang versions to push
-VERSIONS=(10 11 12 13 14 15 16 17 18)
+# List of clang versions to push (full version numbers)
+VERSIONS=(10.0.1 11.1.0 12.0.1 13.0.1 14.0.6 15.0.7 16.0.6 17.0.6 18.1.8)
 
 echo "Pushing Docker images for clang versions: ${VERSIONS[@]}"
 
-# Check if logged in to Docker Hub
-if ! docker info | grep -q "Username"; then
-    echo "Please login to Docker Hub first: docker login"
+# Check if logged in to GitHub Container Registry
+if ! docker info | grep -q "ghcr.io"; then
+    echo "Please login to GitHub Container Registry first:"
+    echo "  echo \$GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin"
     exit 1
 fi
 
