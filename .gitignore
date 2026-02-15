@@ -1,5 +1,6 @@
 # Build artifacts
 build/
+examples/build/
 *.o
 *.a
 *.so
