@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 AS builder
+FROM ubuntu:22.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 # Clone LLVM project with specific version
 WORKDIR /opt
-RUN git clone --branch llvmorg-10.0.1 --depth 1 https://github.com/llvm/llvm-project.git
+RUN git clone --branch llvmorg-21.1.1 --depth 1 https://github.com/llvm/llvm-project.git
 
 # Build and install clang using clang as the compiler
 WORKDIR /opt/llvm-project
@@ -29,7 +29,7 @@ RUN mkdir build && cd build && \
     cmake --build . --target install
 
 # Runtime image
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y \
     cmake \
     ninja-build \
     libc6-dev \
-    libstdc++-10-dev \
+    libstdc++-12-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy clang installation from builder
