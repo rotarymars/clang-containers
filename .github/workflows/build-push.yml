@@ -27,6 +27,8 @@ jobs:
             versions: "13.0.1 14.0.6 15.0.7"
           - group: 3
             versions: "16.0.6 17.0.6 18.1.8"
+          - group: 4
+            versions: "19.1.7 20.1.8 21.1.8"
     
     steps:
       - name: Checkout repository

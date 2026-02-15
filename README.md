@@ -14,12 +14,16 @@ This repository provides Docker images for the following Clang versions:
 - Clang 16.0.6 (`llvmorg-16.0.6`)
 - Clang 17.0.6 (`llvmorg-17.0.6`)
 - Clang 18.1.8 (`llvmorg-18.1.8`)
+- Clang 19.1.7 (`llvmorg-19.1.7`)
+- Clang 20.1.8 (`llvmorg-20.1.8`)
+- Clang 21.1.8 (`llvmorg-21.1.8`)
 
 ## Usage
 
 Each container comes with:
-- The Clang compiler built from source
+- The Clang compiler built from source using clang (self-hosted build)
 - CMake and Ninja build tools
+- Standard C/C++ library headers
 - A `/workspace` directory with a pre-created `build` subdirectory
 
 ### Pull and Run
@@ -111,7 +115,10 @@ The scripts and workflow will automatically pick up the new version.
 │   ├── Dockerfile.clang-15.0.7
 │   ├── Dockerfile.clang-16.0.6
 │   ├── Dockerfile.clang-17.0.6
-│   └── Dockerfile.clang-18.1.8
+│   ├── Dockerfile.clang-18.1.8
+│   ├── Dockerfile.clang-19.1.7
+│   ├── Dockerfile.clang-20.1.8
+│   └── Dockerfile.clang-21.1.8
 ├── .github/
 │   └── workflows/
 │       └── build-push.yml
