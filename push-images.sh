@@ -17,13 +17,13 @@ fi
 
 for version in "${VERSIONS[@]}"; do
     echo "Pushing ${REPO_NAME}:${version}..."
-    docker push ${REPO_NAME}:${version}
+    docker push "${REPO_NAME}:${version}"
     echo "Successfully pushed ${REPO_NAME}:${version}"
 done
 
 # Push the latest tag
 echo "Pushing ${REPO_NAME}:latest..."
-docker push ${REPO_NAME}:latest
+docker push "${REPO_NAME}:latest"
 echo "Successfully pushed ${REPO_NAME}:latest"
 
 echo "All images pushed successfully!"
