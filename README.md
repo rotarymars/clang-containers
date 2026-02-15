@@ -70,8 +70,11 @@ To push images to GitHub Container Registry (requires authentication):
 # Login to GitHub Container Registry
 echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 
-# Push all images
+# Push all images (uses ghcr.io/rotarymars/clang by default)
 ./push-images.sh
+
+# Or override the repository name with DOCKER_REPO environment variable
+DOCKER_REPO=ghcr.io/your-username/clang ./push-images.sh
 ```
 
 ## GitHub Actions
