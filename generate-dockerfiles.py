@@ -6,6 +6,7 @@ This script reads the versions.txt file and generates a Dockerfile for each vers
 
 import os
 import sys
+import re
 
 def read_versions(filename='versions.txt'):
     """Read versions from versions.txt file."""
@@ -22,8 +23,11 @@ def read_versions(filename='versions.txt'):
 
 def get_ubuntu_version(version):
     """Determine Ubuntu version based on LLVM version."""
-    # Extract major version number
-    major_version = int(version.split('.')[0])
+    # Extract major version number (first continuous digits in the version string)
+    m = re.match(r"(\d+)", version)
+    if not m:
+        raise ValueError(f"Invalid version format: {version}")
+    major_version = int(m.group(1))
     
     # Versions 10, 11, 12 use Ubuntu 20.04
     # Versions 13 and above use Ubuntu 22.04
