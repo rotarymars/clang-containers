@@ -12,7 +12,7 @@ echo "Building Docker images for clang versions: ${VERSIONS[@]}"
 
 for version in "${VERSIONS[@]}"; do
     echo "Building clang-${version}..."
-    docker build -f "dockerfiles/Dockerfile.clang-${version}" -t "${REPO_NAME}:${version}" .
+    docker buildx build --file "dockerfiles/Dockerfile.clang-${version}" --tag "${REPO_NAME}:${version}" --load .
     echo "Successfully built ${REPO_NAME}:${version}"
 done
 
