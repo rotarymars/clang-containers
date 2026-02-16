@@ -1,0 +1,60 @@
+FROM ubuntu:22.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies including pre-built clang for bootstrapping
+RUN apt-get update && apt-get install -y \
+    clang \
+    cmake \
+    ninja-build \
+    git \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone LLVM project with specific version
+WORKDIR /opt
+RUN git clone --branch llvmorg-22.1.0-rc3 --depth 1 https://github.com/llvm/llvm-project.git
+
+# Build and install clang using clang as the compiler
+WORKDIR /opt/llvm-project
+RUN mkdir build && cd build && \
+    cmake -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DLLVM_ENABLE_PROJECTS=clang \
+    -DLLVM_TARGETS_TO_BUILD=X86 \
+    ../llvm && \
+    cmake --build . --target install
+
+# Runtime image
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install runtime dependencies (libc and libstdc++ headers without gcc)
+RUN apt-get update && apt-get install -y \
+    cmake \
+    ninja-build \
+    libc6-dev \
+    libstdc++-12-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy clang installation from builder
+COPY --from=builder /usr/local /usr/local
+
+# Set default C/C++ compilers to clang for cmake
+ENV CC=/usr/local/bin/clang
+ENV CXX=/usr/local/bin/clang++
+
+# Create symlinks for standard compiler names (use -f to force overwrite if they exist)
+RUN ln -sf /usr/local/bin/clang /usr/bin/cc && \
+    ln -sf /usr/local/bin/clang++ /usr/bin/c++
+
+# Set up default build directory
+WORKDIR /workspace
+RUN mkdir -p build
+
+# Default command shows clang version
+CMD ["clang", "--version"]
