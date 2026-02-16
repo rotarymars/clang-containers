@@ -119,11 +119,24 @@ The workflow parallelizes builds across multiple jobs (3 versions per job) to av
 To add a new Clang version:
 
 1. Add the version number to `versions.txt` (e.g., `19.0.0-rc1`)
-2. Create a corresponding Dockerfile: `dockerfiles/Dockerfile.clang-19.0.0-rc1`
+2. Generate Dockerfiles: `./generate-dockerfiles.py`
 3. Regenerate the workflow: `python3 generate-workflow.py > .github/workflows/build-push.yml`
 4. Commit and push the changes
 
 The scripts and workflow will automatically pick up the new version.
+
+### Generating Dockerfiles
+
+The `generate-dockerfiles.py` script reads `versions.txt` and generates all Dockerfiles automatically:
+
+```bash
+./generate-dockerfiles.py
+```
+
+This ensures consistency across all Dockerfiles and automatically:
+- Selects the appropriate Ubuntu version (20.04 for LLVM 10-12, 22.04 for LLVM 13+)
+- Configures the correct libstdc++ version for each Ubuntu release
+- Uses `ln -sf` to safely create compiler symlinks (avoiding failures if they already exist)
 
 ## Structure
 
@@ -147,6 +160,7 @@ The scripts and workflow will automatically pick up the new version.
 │       └── build-push.yml
 ├── build-images.sh
 ├── push-images.sh
+├── generate-dockerfiles.py
 ├── generate-workflow.py
 ├── versions.txt
 └── README.md
