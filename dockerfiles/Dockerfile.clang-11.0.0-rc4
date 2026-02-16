@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /opt
 RUN git clone --branch llvmorg-11.0.0-rc4 --depth 1 https://github.com/llvm/llvm-project.git
 
-# Build a   nd install clang using clang as the compiler
+# Build and install clang using clang as the compiler
 WORKDIR /opt/llvm-project
 RUN mkdir build && cd build && \
     cmake -G Ninja \
@@ -48,9 +48,9 @@ COPY --from=builder /usr/local /usr/local
 ENV CC=/usr/local/bin/clang
 ENV CXX=/usr/local/bin/clang++
 
-# Create symlinks for standard compiler names
-RUN ln -s /usr/local/bin/clang /usr/bin/cc && \
-    ln -s /usr/local/bin/clang++ /usr/bin/c++
+# Create symlinks for standard compiler names (use -f to force overwrite if they exist)
+RUN ln -sf /usr/local/bin/clang /usr/bin/cc && \
+    ln -sf /usr/local/bin/clang++ /usr/bin/c++
 
 # Set up default build directory
 WORKDIR /workspace
