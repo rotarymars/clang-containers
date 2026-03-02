@@ -1,5 +1,7 @@
 # clang-containers
 
+[![Build and Push Clang Container Images](https://github.com/rotarymars/clang-containers/actions/workflows/build-push.yml/badge.svg)](https://github.com/rotarymars/clang-containers/actions/workflows/build-push.yml)
+
 A collection of Docker containers, each containing a specific version of the Clang compiler built from the LLVM project source.
 
 ## Available Versions
