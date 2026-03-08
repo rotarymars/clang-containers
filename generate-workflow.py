@@ -22,7 +22,7 @@ def read_versions(filename='versions.txt'):
     
     return versions
 
-def chunk_versions(versions, chunk_size=3):
+def chunk_versions(versions, chunk_size=1):
     """Split versions into chunks for parallel execution."""
     return [versions[i:i + chunk_size] for i in range(0, len(versions), chunk_size)]
 
