@@ -22,117 +22,339 @@ jobs:
         include:
 
           - group: 1
-            versions: "9.0.0 9.0.0-rc1 9.0.0-rc2"
+            versions: "9.0.0"
           - group: 2
-            versions: "9.0.0-rc3 9.0.0-rc4 9.0.0-rc5"
+            versions: "9.0.0-rc1"
           - group: 3
-            versions: "9.0.0-rc6 9.0.1 9.0.1-rc1"
+            versions: "9.0.0-rc2"
           - group: 4
-            versions: "9.0.1-rc2 9.0.1-rc3 10-init"
+            versions: "9.0.0-rc3"
           - group: 5
-            versions: "10.0.0 10.0.0-rc1 10.0.0-rc2"
+            versions: "9.0.0-rc4"
           - group: 6
-            versions: "10.0.0-rc3 10.0.0-rc4 10.0.0-rc5"
+            versions: "9.0.0-rc5"
           - group: 7
-            versions: "10.0.0-rc6 10.0.1 10.0.1-rc1"
+            versions: "9.0.0-rc6"
           - group: 8
-            versions: "10.0.1-rc2 10.0.1-rc3 10.0.1-rc4"
+            versions: "9.0.1"
           - group: 9
-            versions: "11.0.0 11-init 11.0.0-rc1"
+            versions: "9.0.1-rc1"
           - group: 10
-            versions: "11.0.0-rc2 11.0.0-rc3 11.0.0-rc4"
+            versions: "9.0.1-rc2"
           - group: 11
-            versions: "11.0.0-rc5 11.0.0-rc6 11.0.1"
+            versions: "9.0.1-rc3"
           - group: 12
-            versions: "11.0.1-rc1 11.0.1-rc2 11.1.0"
+            versions: "10-init"
           - group: 13
-            versions: "11.1.0-rc1 11.1.0-rc2 11.1.0-rc3"
+            versions: "10.0.0"
           - group: 14
-            versions: "12.0.0 12-init 12.0.0-rc1"
+            versions: "10.0.0-rc1"
           - group: 15
-            versions: "12.0.0-rc2 12.0.0-rc3 12.0.0-rc4"
+            versions: "10.0.0-rc2"
           - group: 16
-            versions: "12.0.0-rc5 12.0.1 12.0.1-rc1"
+            versions: "10.0.0-rc3"
           - group: 17
-            versions: "12.0.1-rc2 12.0.1-rc3 12.0.1-rc4"
+            versions: "10.0.0-rc4"
           - group: 18
-            versions: "13-init 13.0.0 13.0.0-rc1"
+            versions: "10.0.0-rc5"
           - group: 19
-            versions: "13.0.0-rc2 13.0.0-rc3 13.0.0-rc4"
+            versions: "10.0.0-rc6"
           - group: 20
-            versions: "13.0.1 13.0.1-rc1 13.0.1-rc2"
+            versions: "10.0.1"
           - group: 21
-            versions: "13.0.1-rc3 14-init 14.0.0"
+            versions: "10.0.1-rc1"
           - group: 22
-            versions: "14.0.0-rc1 14.0.0-rc2 14.0.0-rc3"
+            versions: "10.0.1-rc2"
           - group: 23
-            versions: "14.0.0-rc4 14.0.1 14.0.2"
+            versions: "10.0.1-rc3"
           - group: 24
-            versions: "14.0.3 14.0.4 14.0.5"
+            versions: "10.0.1-rc4"
           - group: 25
-            versions: "14.0.6 15-init 15.0.0"
+            versions: "11.0.0"
           - group: 26
-            versions: "15.0.0-rc1 15.0.0-rc2 15.0.0-rc3"
+            versions: "11-init"
           - group: 27
-            versions: "15.0.1 15.0.2 15.0.3"
+            versions: "11.0.0-rc1"
           - group: 28
-            versions: "15.0.4 15.0.5 15.0.6"
+            versions: "11.0.0-rc2"
           - group: 29
-            versions: "15.0.7 16-init 16.0.0"
+            versions: "11.0.0-rc3"
           - group: 30
-            versions: "16.0.0-rc1 16.0.0-rc2 16.0.0-rc3"
+            versions: "11.0.0-rc4"
           - group: 31
-            versions: "16.0.0-rc4 16.0.1 16.0.2"
+            versions: "11.0.0-rc5"
           - group: 32
-            versions: "16.0.3 16.0.4 16.0.5"
+            versions: "11.0.0-rc6"
           - group: 33
-            versions: "16.0.6 17-init 17.0.0"
+            versions: "11.0.1"
           - group: 34
-            versions: "17.0.0-rc1 17.0.0-rc2 17.0.0-rc3"
+            versions: "11.0.1-rc1"
           - group: 35
-            versions: "17.0.0-rc4 17.0.1 17.0.2"
+            versions: "11.0.1-rc2"
           - group: 36
-            versions: "17.0.3 17.0.4 17.0.5"
+            versions: "11.1.0"
           - group: 37
-            versions: "17.0.6 18-init 18.1.0"
+            versions: "11.1.0-rc1"
           - group: 38
-            versions: "18.1.0-rc1 18.1.0-rc2 18.1.0-rc3"
+            versions: "11.1.0-rc2"
           - group: 39
-            versions: "18.1.0-rc4 18.1.1 18.1.2"
+            versions: "11.1.0-rc3"
           - group: 40
-            versions: "18.1.3 18.1.4 18.1.5"
+            versions: "12.0.0"
           - group: 41
-            versions: "18.1.6 18.1.7 18.1.8"
+            versions: "12-init"
           - group: 42
-            versions: "19-init 19.1.0 19.1.0-rc1"
+            versions: "12.0.0-rc1"
           - group: 43
-            versions: "19.1.0-rc2 19.1.0-rc3 19.1.0-rc4"
+            versions: "12.0.0-rc2"
           - group: 44
-            versions: "19.1.1 19.1.2 19.1.3"
+            versions: "12.0.0-rc3"
           - group: 45
-            versions: "19.1.4 19.1.5 19.1.6"
+            versions: "12.0.0-rc4"
           - group: 46
-            versions: "19.1.7 20-init 20.1.0"
+            versions: "12.0.0-rc5"
           - group: 47
-            versions: "20.1.0-rc1 20.1.0-rc2 20.1.0-rc3"
+            versions: "12.0.1"
           - group: 48
-            versions: "20.1.1 20.1.2 20.1.3"
+            versions: "12.0.1-rc1"
           - group: 49
-            versions: "20.1.4 20.1.5 20.1.6"
+            versions: "12.0.1-rc2"
           - group: 50
-            versions: "20.1.7 20.1.8 21-init"
+            versions: "12.0.1-rc3"
           - group: 51
-            versions: "21.1.0 21.1.0-rc1 21.1.0-rc2"
+            versions: "12.0.1-rc4"
           - group: 52
-            versions: "21.1.0-rc3 21.1.1 21.1.2"
+            versions: "13-init"
           - group: 53
-            versions: "21.1.3 21.1.4 21.1.5"
+            versions: "13.0.0"
           - group: 54
-            versions: "21.1.6 21.1.7 21.1.8"
+            versions: "13.0.0-rc1"
           - group: 55
-            versions: "22-init 22.1.0-rc1 22.1.0-rc2"
+            versions: "13.0.0-rc2"
           - group: 56
-            versions: "22.1.0-rc3 23-init"
+            versions: "13.0.0-rc3"
+          - group: 57
+            versions: "13.0.0-rc4"
+          - group: 58
+            versions: "13.0.1"
+          - group: 59
+            versions: "13.0.1-rc1"
+          - group: 60
+            versions: "13.0.1-rc2"
+          - group: 61
+            versions: "13.0.1-rc3"
+          - group: 62
+            versions: "14-init"
+          - group: 63
+            versions: "14.0.0"
+          - group: 64
+            versions: "14.0.0-rc1"
+          - group: 65
+            versions: "14.0.0-rc2"
+          - group: 66
+            versions: "14.0.0-rc3"
+          - group: 67
+            versions: "14.0.0-rc4"
+          - group: 68
+            versions: "14.0.1"
+          - group: 69
+            versions: "14.0.2"
+          - group: 70
+            versions: "14.0.3"
+          - group: 71
+            versions: "14.0.4"
+          - group: 72
+            versions: "14.0.5"
+          - group: 73
+            versions: "14.0.6"
+          - group: 74
+            versions: "15-init"
+          - group: 75
+            versions: "15.0.0"
+          - group: 76
+            versions: "15.0.0-rc1"
+          - group: 77
+            versions: "15.0.0-rc2"
+          - group: 78
+            versions: "15.0.0-rc3"
+          - group: 79
+            versions: "15.0.1"
+          - group: 80
+            versions: "15.0.2"
+          - group: 81
+            versions: "15.0.3"
+          - group: 82
+            versions: "15.0.4"
+          - group: 83
+            versions: "15.0.5"
+          - group: 84
+            versions: "15.0.6"
+          - group: 85
+            versions: "15.0.7"
+          - group: 86
+            versions: "16-init"
+          - group: 87
+            versions: "16.0.0"
+          - group: 88
+            versions: "16.0.0-rc1"
+          - group: 89
+            versions: "16.0.0-rc2"
+          - group: 90
+            versions: "16.0.0-rc3"
+          - group: 91
+            versions: "16.0.0-rc4"
+          - group: 92
+            versions: "16.0.1"
+          - group: 93
+            versions: "16.0.2"
+          - group: 94
+            versions: "16.0.3"
+          - group: 95
+            versions: "16.0.4"
+          - group: 96
+            versions: "16.0.5"
+          - group: 97
+            versions: "16.0.6"
+          - group: 98
+            versions: "17-init"
+          - group: 99
+            versions: "17.0.0"
+          - group: 100
+            versions: "17.0.0-rc1"
+          - group: 101
+            versions: "17.0.0-rc2"
+          - group: 102
+            versions: "17.0.0-rc3"
+          - group: 103
+            versions: "17.0.0-rc4"
+          - group: 104
+            versions: "17.0.1"
+          - group: 105
+            versions: "17.0.2"
+          - group: 106
+            versions: "17.0.3"
+          - group: 107
+            versions: "17.0.4"
+          - group: 108
+            versions: "17.0.5"
+          - group: 109
+            versions: "17.0.6"
+          - group: 110
+            versions: "18-init"
+          - group: 111
+            versions: "18.1.0"
+          - group: 112
+            versions: "18.1.0-rc1"
+          - group: 113
+            versions: "18.1.0-rc2"
+          - group: 114
+            versions: "18.1.0-rc3"
+          - group: 115
+            versions: "18.1.0-rc4"
+          - group: 116
+            versions: "18.1.1"
+          - group: 117
+            versions: "18.1.2"
+          - group: 118
+            versions: "18.1.3"
+          - group: 119
+            versions: "18.1.4"
+          - group: 120
+            versions: "18.1.5"
+          - group: 121
+            versions: "18.1.6"
+          - group: 122
+            versions: "18.1.7"
+          - group: 123
+            versions: "18.1.8"
+          - group: 124
+            versions: "19-init"
+          - group: 125
+            versions: "19.1.0"
+          - group: 126
+            versions: "19.1.0-rc1"
+          - group: 127
+            versions: "19.1.0-rc2"
+          - group: 128
+            versions: "19.1.0-rc3"
+          - group: 129
+            versions: "19.1.0-rc4"
+          - group: 130
+            versions: "19.1.1"
+          - group: 131
+            versions: "19.1.2"
+          - group: 132
+            versions: "19.1.3"
+          - group: 133
+            versions: "19.1.4"
+          - group: 134
+            versions: "19.1.5"
+          - group: 135
+            versions: "19.1.6"
+          - group: 136
+            versions: "19.1.7"
+          - group: 137
+            versions: "20-init"
+          - group: 138
+            versions: "20.1.0"
+          - group: 139
+            versions: "20.1.0-rc1"
+          - group: 140
+            versions: "20.1.0-rc2"
+          - group: 141
+            versions: "20.1.0-rc3"
+          - group: 142
+            versions: "20.1.1"
+          - group: 143
+            versions: "20.1.2"
+          - group: 144
+            versions: "20.1.3"
+          - group: 145
+            versions: "20.1.4"
+          - group: 146
+            versions: "20.1.5"
+          - group: 147
+            versions: "20.1.6"
+          - group: 148
+            versions: "20.1.7"
+          - group: 149
+            versions: "20.1.8"
+          - group: 150
+            versions: "21-init"
+          - group: 151
+            versions: "21.1.0"
+          - group: 152
+            versions: "21.1.0-rc1"
+          - group: 153
+            versions: "21.1.0-rc2"
+          - group: 154
+            versions: "21.1.0-rc3"
+          - group: 155
+            versions: "21.1.1"
+          - group: 156
+            versions: "21.1.2"
+          - group: 157
+            versions: "21.1.3"
+          - group: 158
+            versions: "21.1.4"
+          - group: 159
+            versions: "21.1.5"
+          - group: 160
+            versions: "21.1.6"
+          - group: 161
+            versions: "21.1.7"
+          - group: 162
+            versions: "21.1.8"
+          - group: 163
+            versions: "22-init"
+          - group: 164
+            versions: "22.1.0-rc1"
+          - group: 165
+            versions: "22.1.0-rc2"
+          - group: 166
+            versions: "22.1.0-rc3"
+          - group: 167
+            versions: "23-init"
     
     steps:
       - name: Checkout repository
