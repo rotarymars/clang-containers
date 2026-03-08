@@ -86,7 +86,7 @@ jobs:
             echo "Building and pushing clang-$version..."
             docker buildx build \\
               --file "dockerfiles/Dockerfile.clang-$version" \\
-              --platform linux/amd64,linux/arm64\\
+              --platform linux/amd64\\
               --tag "ghcr.io/${{{{ github.repository_owner }}}}/clang:$version" \\
               --cache-from type=gha,scope=clang-$version \\
               --cache-to type=gha,mode=max,scope=clang-$version \\
