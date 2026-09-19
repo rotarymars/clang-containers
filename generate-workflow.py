@@ -1,45 +1,32 @@
 #!/usr/bin/env python3
 """
 Generate GitHub Actions workflow from versions.txt
-This script creates a workflow that parallelizes builds across multiple jobs
-to avoid hitting the 6-hour GitHub Actions timeout.
+
+The workflow builds each clang version as its own job, but only for versions
+whose Dockerfile actually changed (or, on demand, the ones missing from the
+registry). Builds are layer-cached in the registry so an unchanged builder
+stage is never recompiled.
 """
 
-import json
-import sys
 import os
+import sys
 
 def read_versions(filename='versions.txt'):
     """Read versions from versions.txt file."""
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Error: {filename} not found. Please create it with version numbers.")
-    
+
     with open(filename, 'r') as f:
         versions = [line.strip() for line in f if line.strip()]
-    
+
     if not versions:
         raise ValueError(f"Error: {filename} is empty. Please add at least one version.")
-    
+
     return versions
 
-def chunk_versions(versions, chunk_size=1):
-    """Split versions into chunks for parallel execution."""
-    return [versions[i:i + chunk_size] for i in range(0, len(versions), chunk_size)]
-
-def generate_workflow():
-    """Generate GitHub Actions workflow YAML."""
-    versions = read_versions()
-    chunks = chunk_versions(versions)
-    
-    # Generate matrix includes
-    matrix_includes = []
-    for i, chunk in enumerate(chunks):
-        matrix_includes.append({
-            'group': i + 1,
-            'versions': ' '.join(chunk)
-        })
-    
-    workflow = f"""name: Build and Push Clang Container Images
+# The build matrix is resolved at run time from versions.txt, so this template
+# does not need regenerating whenever a version is added.
+WORKFLOW = r'''name: Build and Push Clang Container Images
 
 on:
   push:
@@ -47,12 +34,105 @@ on:
       - main
     paths:
       - 'dockerfiles/**'
-      - '.github/workflows/build-push.yml'
       - 'versions.txt'
   workflow_dispatch:
+    inputs:
+      versions:
+        description: 'changed | missing | all | explicit space separated list'
+        required: false
+        default: 'missing'
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/clang
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      versions: ${{ steps.plan.outputs.versions }}
+      count: ${{ steps.plan.outputs.count }}
+      build_latest: ${{ steps.plan.outputs.build_latest }}
+      latest: ${{ steps.plan.outputs.latest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide which versions to build
+        id: plan
+        env:
+          MODE: ${{ github.event.inputs.versions || 'changed' }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          all_versions() { grep -v '^[[:space:]]*$' versions.txt; }
+
+          # A push with no usable base (new branch, force push) cannot be
+          # diffed, so fall back to building whatever the registry lacks.
+          if [ "$MODE" = changed ] && { [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; }; then
+            echo "No diffable base commit, falling back to 'missing'"
+            MODE=missing
+          fi
+
+          case "$MODE" in
+            all)
+              LIST=$(all_versions)
+              ;;
+            changed)
+              LIST=$(git diff --name-only --diff-filter=d "$BEFORE" "${{ github.sha }}" -- dockerfiles/ \
+                     | sed -n 's#^dockerfiles/Dockerfile\.clang-##p')
+              ;;
+            missing)
+              LIST=""
+              for v in $(all_versions); do
+                if docker buildx imagetools inspect "$IMAGE:$v" >/dev/null 2>&1; then
+                  echo "Already published: $v"
+                else
+                  LIST="$LIST$v"$'\n'
+                fi
+              done
+              ;;
+            *)
+              LIST=$(printf '%s\n' $MODE)
+              ;;
+          esac
+
+          # Drop anything that is not a known version with a Dockerfile.
+          SELECTED=""
+          for v in $LIST; do
+            if grep -qxF "$v" versions.txt && [ -f "dockerfiles/Dockerfile.clang-$v" ]; then
+              SELECTED="$SELECTED$v"$'\n'
+            else
+              echo "Skipping unknown version: $v"
+            fi
+          done
+
+          # Single jq pass so an empty selection yields [] instead of failing.
+          JSON=$(printf '%s' "$SELECTED" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          COUNT=$(printf '%s' "$JSON" | jq length)
+          LATEST=$(all_versions | tail -n1)
+
+          echo "versions=$JSON" >> "$GITHUB_OUTPUT"
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "build_latest=$(printf '%s' "$JSON" | jq --arg l "$LATEST" 'any(. == $l)')" >> "$GITHUB_OUTPUT"
+
+          echo "Building $COUNT version(s) (mode: $MODE): $JSON" >> "$GITHUB_STEP_SUMMARY"
+
   build-and-push:
+    needs: plan
+    if: needs.plan.outputs.count != '0'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -60,68 +140,70 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-{('\n' + '\n'.join([f'          - group: {mi["group"]}\n            versions: "{mi["versions"]}"' for mi in matrix_includes]))}
-    
+        version: ${{ fromJSON(needs.plan.outputs.versions) }}
+    # A newer push for the same version supersedes this build; unrelated
+    # versions keep running.
+    concurrency:
+      group: build-clang-${{ matrix.version }}
+      cancel-in-progress: true
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-      
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{{{ github.repository_owner }}}}
-          password: ${{{{ secrets.GITHUB_TOKEN }}}}
-      
-      - name: Build and push versions in group ${{{{ matrix.group }}}}
-        run: |
-          for version in ${{{{ matrix.versions }}}}; do
-            echo "Building and pushing clang-$version..."
-            docker buildx build \\
-              --file "dockerfiles/Dockerfile.clang-$version" \\
-              --platform linux/amd64\\
-              --tag "ghcr.io/${{{{ github.repository_owner }}}}/clang:$version" \\
-              --cache-from type=gha,scope=clang-$version \\
-              --cache-to type=gha,mode=max,scope=clang-$version \\
-              --push \\
-              .
-            echo "Successfully built and pushed clang-$version"
-          done
-  
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push clang-${{ matrix.version }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockerfiles/Dockerfile.clang-${{ matrix.version }}
+          platforms: linux/amd64
+          tags: ${{ env.IMAGE }}:${{ matrix.version }}
+          push: true
+          provenance: false
+          # Registry cache, not type=gha: the GitHub Actions cache is capped at
+          # 10 GB per repository, which a single LLVM build tree can exhaust.
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.version }}
+          cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache-${{ matrix.version }},mode=max,image-manifest=true,oci-mediatypes=true
+
   tag-latest:
-    needs: build-and-push
+    needs: [plan, build-and-push]
+    if: needs.plan.outputs.build_latest == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{{{ github.repository_owner }}}}
-          password: ${{{{ secrets.GITHUB_TOKEN }}}}
-      
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Tag latest version
+        # imagetools retags server side, so no multi-GB pull is needed.
         run: |
-          LATEST_VERSION=$(grep -v '^[[:space:]]*$' versions.txt | tail -n1)
-          docker pull ghcr.io/${{{{ github.repository_owner }}}}/clang:$LATEST_VERSION
-          docker tag ghcr.io/${{{{ github.repository_owner }}}}/clang:$LATEST_VERSION ghcr.io/${{{{ github.repository_owner }}}}/clang:latest
-          docker push ghcr.io/${{{{ github.repository_owner }}}}/clang:latest
-"""
-    
-    return workflow
+          docker buildx imagetools create \
+            --tag "$IMAGE:latest" \
+            "$IMAGE:${{ needs.plan.outputs.latest }}"
+'''
+
+def generate_workflow():
+    """Generate GitHub Actions workflow YAML."""
+    # Validated so a broken versions.txt fails here rather than in CI.
+    read_versions()
+    return WORKFLOW
 
 if __name__ == '__main__':
     try:
@@ -129,4 +211,3 @@ if __name__ == '__main__':
     except (FileNotFoundError, ValueError) as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
-

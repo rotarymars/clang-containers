@@ -28,7 +28,7 @@ def get_ubuntu_version(version):
     if not m:
         raise ValueError(f"Invalid version format: {version}")
     major_version = int(m.group(1))
-    
+
     # Versions 10, 11, 12 use Ubuntu 20.04
     # Versions 13 and above use Ubuntu 22.04
     if major_version <= 12:
@@ -36,9 +36,37 @@ def get_ubuntu_version(version):
     else:
         return '22.04', 'libstdc++-12-dev'
 
+def get_major_version(version):
+    """Extract the LLVM major version number."""
+    m = re.match(r"(\d+)", version)
+    if not m:
+        raise ValueError(f"Invalid version format: {version}")
+    return int(m.group(1))
+
+# Runtimes built from the same source tree so each image ships the libc++ that
+# matches its clang.
+RUNTIMES = 'libcxx;libcxxabi;libunwind'
+
+def get_runtime_build(version):
+    """Return (cmake_flags, extra_build_steps) for building libc++ for this version.
+
+    LLVM_ENABLE_RUNTIMES only knows how to build libc++ from 13 onwards; before
+    that the runtimes are ordinary projects. Building them as projects stopped
+    working in LLVM 16, so the split has to stay version dependent.
+    """
+    if get_major_version(version) >= 13:
+        cmake_flags = f'-DLLVM_ENABLE_PROJECTS=clang \\\n    -DLLVM_ENABLE_RUNTIMES="{RUNTIMES}"'
+        # install-runtimes is not always attached to the top level install target
+        extra = ' && \\\n    cmake --build . --target install-runtimes'
+    else:
+        cmake_flags = f'-DLLVM_ENABLE_PROJECTS="clang;{RUNTIMES}"'
+        extra = ''
+    return cmake_flags, extra
+
 def generate_dockerfile(version):
     """Generate Dockerfile content for a specific version."""
     ubuntu_version, libstdcpp = get_ubuntu_version(version)
+    runtime_flags, runtime_install = get_runtime_build(version)
     
     dockerfile = f"""FROM ubuntu:{ubuntu_version} AS builder
 
@@ -65,10 +93,10 @@ RUN mkdir build && cd build && \\
     -DCMAKE_INSTALL_PREFIX=/usr/local \\
     -DCMAKE_C_COMPILER=clang \\
     -DCMAKE_CXX_COMPILER=clang++ \\
-    -DLLVM_ENABLE_PROJECTS=clang \\
+    {runtime_flags} \\
     -DLLVM_TARGETS_TO_BUILD=X86 \\
     ../llvm && \\
-    cmake --build . --target install
+    cmake --build . --target install{runtime_install}
 
 # Runtime image
 FROM ubuntu:{ubuntu_version}
@@ -83,8 +111,12 @@ RUN apt-get update && apt-get install -y \\
     {libstdcpp} \\
     && rm -rf /var/lib/apt/lists/*
 
-# Copy clang installation from builder
+# Copy clang installation (including the matching libc++) from builder
 COPY --from=builder /usr/local /usr/local
+
+# Make the bundled libc++ visible to the dynamic loader
+RUN printf '/usr/local/lib\\n/usr/local/lib/x86_64-unknown-linux-gnu\\n' \\
+    > /etc/ld.so.conf.d/llvm-runtimes.conf && ldconfig
 
 # Set default C/C++ compilers to clang for cmake
 ENV CC=/usr/local/bin/clang

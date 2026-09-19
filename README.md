@@ -47,8 +47,9 @@ This repository provides Docker images for the following Clang versions:
 
 Each container comes with:
 - The Clang compiler built from source using clang (self-hosted build)
+- The matching `libc++`, `libc++abi` and `libunwind`, built from the same LLVM source tree
 - CMake and Ninja build tools
-- Standard C/C++ library headers
+- Standard C/C++ library headers (libstdc++ remains the default)
 - A `/workspace` directory with a pre-created `build` subdirectory
 
 ### Pull and Run
@@ -77,6 +78,21 @@ docker run -it --rm -v $(pwd):/workspace ghcr.io/rotarymars/clang:18.1.8 /bin/ba
 cd /workspace/build
 cmake ..
 cmake --build .
+```
+
+### Using libc++
+
+Every image ships the `libc++` that matches its Clang version. libstdc++ stays
+the default standard library; opt into libc++ per compilation:
+
+```bash
+clang++ -stdlib=libc++ -std=c++20 main.cpp -o main
+```
+
+With CMake:
+
+```bash
+cmake -DCMAKE_CXX_FLAGS=-stdlib=libc++ ..
 ```
 
 ## Building Images Locally
@@ -112,9 +128,31 @@ This repository includes a GitHub Actions workflow that automatically builds and
 
 The workflow uses `GITHUB_TOKEN` which is automatically provided by GitHub Actions with the necessary permissions to push to the container registry.
 
-### Parallelization
+### What gets built
 
-The workflow parallelizes builds across multiple jobs (3 versions per job) to avoid hitting GitHub Actions' 6-hour timeout limit. With 35 versions, the workflow creates 12 parallel groups. The workflow is automatically generated from `versions.txt` using `generate-workflow.py`.
+A `plan` job decides the build matrix at run time, so a push does not rebuild
+every version:
+
+- **push to main** — builds only the versions whose `dockerfiles/Dockerfile.clang-*`
+  changed in that push.
+- **manual run** — the `versions` input accepts `missing` (default; builds only
+  what is absent from ghcr.io), `changed`, `all`, or an explicit space separated
+  list such as `20.1.8 21.1.8`.
+
+### Caching
+
+Each version keeps a `mode=max` registry layer cache at
+`ghcr.io/<owner>/clang:buildcache-<version>`. An unchanged builder stage is
+restored from there instead of recompiling LLVM, so edits to the runtime stage
+are cheap. Registry cache is used rather than `type=gha` because the GitHub
+Actions cache is capped at 10 GB per repository, which a single LLVM build tree
+can exhaust.
+
+Each build is scoped to a per-version concurrency group, so a newer push for the
+same version cancels the superseded run while unrelated versions continue.
+
+The workflow resolves versions from `versions.txt` at run time, so it only needs
+regenerating when `generate-workflow.py` itself changes.
 
 ## Adding New Versions
 
@@ -122,10 +160,10 @@ To add a new Clang version:
 
 1. Add the version number to `versions.txt` (e.g., `19.0.0-rc1`)
 2. Generate Dockerfiles: `./generate-dockerfiles.py`
-3. Regenerate the workflow: `python3 generate-workflow.py > .github/workflows/build-push.yml`
-4. Commit and push the changes
+3. Commit and push the changes
 
-The scripts and workflow will automatically pick up the new version.
+The workflow reads `versions.txt` at run time and builds the new version's
+Dockerfile because it is new in the push.
 
 ### Generating Dockerfiles
 
@@ -138,6 +176,9 @@ The `generate-dockerfiles.py` script reads `versions.txt` and generates all Dock
 This ensures consistency across all Dockerfiles and automatically:
 - Selects the appropriate Ubuntu version (20.04 for LLVM 10-12, 22.04 for LLVM 13+)
 - Configures the correct libstdc++ version for each Ubuntu release
+- Builds `libc++`/`libc++abi`/`libunwind` from the same source tree, via
+  `LLVM_ENABLE_RUNTIMES` for LLVM 13+ and `LLVM_ENABLE_PROJECTS` for earlier
+  releases, which predate the runtimes build
 - Uses `ln -sf` to safely create compiler symlinks (avoiding failures if they already exist)
 
 ## Structure
